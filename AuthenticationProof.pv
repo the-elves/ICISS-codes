@@ -1,0 +1,130 @@
+(*type declarations*)
+type uid.
+type rand.
+type idr.
+type idc.
+type idp.
+type auth.
+type udata.
+
+type key.
+type skey.
+type pkey.
+
+
+fun senc(bitstring, key):bitstring.
+reduc forall m:bitstring, k:key; sdec(senc(m,k),k) = m.
+
+fun pk(skey): pkey.
+fun aenc(bitstring, pkey): bitstring.
+
+reduc forall m: bitstring, sk: skey; adec(aenc(m,pk(sk)),sk) = m.
+
+table cpdata(idr, bitstring).
+
+(* Digital signatures *)
+
+type sskey.
+type spkey.
+
+fun spk(sskey): spkey.
+fun sign(bitstring, sskey): bitstring.
+
+reduc forall m: bitstring, ssk: sskey; getmess(sign(m,ssk)) = m.
+reduc forall m: bitstring, ssk: sskey; checksign(sign(m,ssk),spk(ssk)) = m.
+
+event clientConsidersVerified(idr, bitstring).
+event cpActuallyVerified(idr, bitstring).
+event datasubmittedtocp(uid, bitstring).
+event cpGeneratedId(uid, bitstring, idr).
+query qidguid:uid, qidgid:idr, qidgd:bitstring; event(cpActuallyVerified(qidgid, qidgd)) ==> event (cpGeneratedId(qidguid,qidgd, qidgid)).
+query qaid:idr, qad:bitstring, qauid:uid; event(cpGeneratedId(qauid,qad, qaid)) ==> event(datasubmittedtocp(qauid, qad)).
+query qid:idr, qdata:bitstring; event(clientConsidersVerified(qid, qdata)) ==> event(cpActuallyVerified(qid,qdata)).
+(*hashing*)
+fun hash(rand, idc):bitstring.
+(*free u:uid[private].*)
+free internet:channel.
+free cellular:channel [private].
+free cellular1:channel [private].
+free face2face:channel[private].
+
+
+
+let user(u:uid, pkCP:pkey, usk:skey, ussk:sskey, ucpspk:spkey,ucpk:pkey)=
+    new d: bitstring;
+    event datasubmittedtocp(u,d);
+    out(cellular, aenc((u,d,sign((u,d,pk(usk), pkCP), ussk)), pkCP));
+    in(cellular, cpidm:bitstring);
+    let (id: idr, sig:bitstring) = adec(cpidm, usk)in
+    let (=id, =pkCP, =pk(usk)) = checksign(sig, ucpspk) in
+    let (sigid1:idr, sigid1:idr) = checksign(sig, ucpspk) in
+    let sigid1 = id in
+    out(face2face, aenc((id,d,sign((id,d,ucpk, pk(usk)),ussk)),ucpk)).
+
+let client(cpspk:spkey, clisk:skey, clissk:sskey, clicppk:pkey,cupk:pkey, clispk:spkey)=
+    new cconsumer: idc;
+    new r: rand;
+    in(face2face, uclim:bitstring  );
+    let (id:idr,d:bitstring, ucsig:bitstring) = adec(uclim, clisk)in
+    let (=id, =d, =pk(clisk), =cupk) = checksign(ucsig, clispk) in
+    let h1:bitstring = hash(r, cconsumer) in
+    out(internet,
+		aenc(
+			(id, h1, d, sign(
+						(id, h1,d,pk(clisk),clicppk)
+						,clissk
+					)
+			)
+			,clicppk
+		)
+	);
+    in(internet, m2:bitstring);
+    let (h3:bitstring, csig:bitstring) = adec(m2,clisk) in
+    let (h2:bitstring, sigCpSpk:spkey, sigpk:pkey)  = checksign(csig, cpspk) in
+    let h2 = h1 in
+    let sigCpSpk = pk(clisk) in
+    let sigpk = clicppk in
+    new services:bitstring;
+    out(internet, services);
+    event clientConsidersVerified(id,d).
+    
+let CP(skCP:skey , k:key, cpSPK:sskey, cpclipk:pkey, cpclispk:spkey, cpupk:pkey, cpuspk:spkey)=
+    in(	cellular, m1:bitstring);
+    let (u:uid,d:bitstring,ucpsig:bitstring)= adec(m1, skCP) in
+    let (=u, =d, =cpupk, =pk(skCP)) = checksign(ucpsig,cpuspk)in 
+    new id1:idr;
+    event cpGeneratedId(u,d,id1);
+    insert cpdata(id1, senc(d,k));
+    out(cellular,
+	aenc(
+		(
+			id1,
+			sign(
+				(
+					id1,
+					pk(skCP),
+					cpupk
+				),
+				cpSPK
+			)
+		),cpupk
+	)
+	);
+    in(internet, ccpm1:bitstring);
+    let (id: idr, h: bitstring,d1: bitstring, ccpsig:bitstring) = adec(ccpm1, skCP) in
+    let (=id, =h, =d1, =cpclipk, =pk(skCP)) = checksign(ccpsig, cpclispk) in
+    get cpdata(id, ed:bitstring) in
+    let dd:bitstring = sdec(ed, k) in
+    let dd = d1 in
+    event cpActuallyVerified(id, d1);
+    out(internet, aenc( (h, sign((h, cpclipk, pk(skCP)), cpSPK)),cpclipk)).
+    
+process
+	(
+		(
+			new u1:uid;new sCP:skey ; new k:key; new cpssk:sskey;new usersk:skey; new userssk:sskey; new clientsk:skey;new clientssk:sskey;
+			 ! user(u1,pk(sCP),usersk, userssk,spk( cpssk), pk(clientsk))
+			|!(client(spk(cpssk),clientsk, clientssk, pk(sCP), pk(usersk),spk(userssk)))
+			| !(CP(sCP,k, cpssk, pk(clientsk), spk(clientssk), pk(usersk),spk(userssk)))
+		)
+	)

@@ -1,0 +1,80 @@
+(*type declarations*)
+type uid.
+type rand.
+type idr.
+type idc.
+type idp.
+type auth.
+type udata.
+
+type key.
+type skey.
+type pkey.
+
+fun senc(bitstring, key):bitstring.
+reduc forall m:bitstring, k:key; sdec(senc(m,k),k) = m.
+
+fun pk(skey): pkey.
+fun aenc(bitstring, pkey): bitstring.
+
+reduc forall m: bitstring, sk: skey; adec(aenc(m,pk(sk)),sk) = m.
+
+table cpdata(idr, bitstring).
+
+(* Digital signatures *)
+
+type sskey.
+type spkey.
+
+fun spk(sskey): spkey.
+fun sign(bitstring, sskey): bitstring.
+
+reduc forall m: bitstring, ssk: sskey; getmess(sign(m,ssk)) = m.
+reduc forall m: bitstring, ssk: sskey; checksign(sign(m,ssk),spk(ssk)) = m.
+
+(*hashing*)
+fun hash(rand, idc):bitstring.
+(*free u:uid[private].*)
+free internet:channel.
+free cellular:channel [private].
+free cellular1:channel [private].
+free face2face:channel[private].
+
+
+
+let user(u:uid, pkCP:pkey)=
+    new d: bitstring;
+    out(cellular, aenc((u,d), pkCP));
+    in(cellular, id: idr);
+    out(face2face, (id,d)).
+
+let client=
+    new cconsumer: idc;
+    new r: rand;
+    in(face2face, (id:idr,d:bitstring));
+    out(internet, (id, hash(r, cconsumer), d)).
+    
+let CP(skCP:skey )=
+    in(	cellular, m1:bitstring);
+    let (u:uid,d:bitstring)= adec(m1, skCP) in
+    new id1:idr;
+    out(cellular, id1);
+    in(internet, (id: idr, h: bitstring,d1: bitstring)).
+    
+equivalence
+	(
+		!(
+			new u1:uid;new sCP:skey ;
+			!user(u1,pk(sCP))
+			|! (client)
+			|! (CP(sCP))
+		)
+	)
+	(
+		!(
+			new u2:uid;new sCP2:skey ;
+			!user(u2,pk(sCP2))
+			| !(client)
+			| !(CP(sCP2))
+		)
+	)

@@ -1,0 +1,89 @@
+(*type declarations*)
+type uid.
+type rand.
+type idr.
+type idc.
+type idp.
+type auth.
+type udata.
+
+type key.
+type skey.
+type pkey.
+
+fun senc(bitstring, key):bitstring.
+reduc forall m:bitstring, k:key; sdec(senc(m,k),k) = m.
+
+fun pk(skey): pkey.
+fun aenc(bitstring, pkey): bitstring.
+
+reduc forall m: bitstring, sk: skey; adec(aenc(m,pk(sk)),sk) = m.
+
+table cpdata(idr, bitstring).
+
+(* Digital signatures *)
+
+type sskey.
+type spkey.
+
+fun spk(sskey): spkey.
+fun sign(bitstring, sskey): bitstring.
+
+reduc forall m: bitstring, ssk: sskey; getmess(sign(m,ssk)) = m.
+reduc forall m: bitstring, ssk: sskey; checksign(sign(m,ssk),spk(ssk)) = m.
+
+(*hashing*)
+fun hash(rand, idc):bitstring.
+(*free u:uid[private].*)
+free internet:channel.
+free cellular:channel [private].
+free cellular1:channel [private].
+free face2face:channel[private].
+
+
+
+let user(u:uid, pkCP:pkey)=
+    new d: bitstring;
+    out(cellular, aenc((u,d), pkCP));
+    in(cellular, id: idr);
+    out(face2face, (id,d)).
+
+let client(cpspk:spkey)=
+    new cconsumer: idc;
+    new r: rand;
+    in(face2face, (id:idr,d:bitstring));
+    let h1:bitstring = hash(r, cconsumer) in
+    out(internet, (id, h1, d));
+    in(internet, m2:bitstring);
+    let h2  = checksign(m2, cpspk) in
+    let h2 = h1 in
+    new services:bitstring;
+    out(internet, services).
+    
+let CP(skCP:skey , k:key, cpSPK:sskey)=
+    in(	cellular, m1:bitstring);
+    let (u:uid,d:bitstring)= adec(m1, skCP) in
+    new id1:idr;
+    insert cpdata(id1, senc(d,k));
+    out(cellular, id1);
+    in(internet, (id: idr, h: bitstring,d1: bitstring));
+    get cpdata(id, ed:bitstring) in
+    let dd:bitstring = sdec(ed, k) in
+    let dd = d1 in
+    out(internet, sign(h, cpSPK)).
+    
+equivalence
+	(
+		!(
+			new u1:uid;new sCP:skey ; new k:key; new cpssk:sskey;!user(u1,pk(sCP))
+			|! (client(spk(cpssk)))
+			|! (CP(sCP,k, cpssk))
+		)
+	)
+	(
+		!(
+			new u2:uid;new sCP2:skey ; new k:key; new cpssk1:sskey;!user(u2,pk(sCP2))
+			| !(client(spk(cpssk1)))
+			| !(CP(sCP2,k,cpssk1))
+		)
+	)

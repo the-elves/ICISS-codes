@@ -1,0 +1,59 @@
+digraph {
+graph [ordering = out]
+edge [arrowhead = none, penwidth = 1.6, fontsize = 30]
+node [shape = point, width = 0, height = 0, fontsize = 30]
+Trace [label = <A trace has been found.<br/>
+>, shape = plaintext]
+P0__0 [label = "Honest Process", shape = plaintext]
+P__0 [label = "Attacker", shape = plaintext]
+Trace -> P0__0 [label = "", style = invisible, weight = 100]{rank = same; P0__0 P__0}
+P0__0 -> P0__1 [label = <>, weight = 100]
+P0__1 -> P0__2 [label = <>, weight = 100]
+P0__2 [shape = plaintext, label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD><FONT COLOR="darkgreen">{1}</FONT><FONT COLOR="blue">new </FONT>u1_2675</TD></TR><TR><TD><FONT COLOR="darkgreen">{2}</FONT><FONT COLOR="blue">new </FONT>sCP_2678</TD></TR><TR><TD><FONT COLOR="darkgreen">{3}</FONT><FONT COLOR="blue">new </FONT>k_2681</TD></TR><TR><TD><FONT COLOR="darkgreen">{4}</FONT><FONT COLOR="blue">new </FONT>cpssk_2682</TD></TR><TR><TD><FONT COLOR="darkgreen">{5}</FONT><FONT COLOR="blue">new </FONT>usersk_2677</TD></TR><TR><TD><FONT COLOR="darkgreen">{6}</FONT><FONT COLOR="blue">new </FONT>userssk_2679</TD></TR><TR><TD><FONT COLOR="darkgreen">{7}</FONT><FONT COLOR="blue">new </FONT>clientsk_2683</TD></TR><TR><TD><FONT COLOR="darkgreen">{8}</FONT><FONT COLOR="blue">new </FONT>clientssk_2684</TD></TR></TABLE>>]
+P0__2 -> P0__3 [label = <>, weight = 100]
+/*RPar */
+P0__3 -> P0_2__3 [label = <>]
+P0__3 -> P0_1__3 [label = <>]
+P0__3 -> P0_0__3 [label = <>]
+P0__3 [label = "", fixedsize = false, width = 0, height = 0, shape = none]
+{rank = same; P0_0__3 P0_1__3 P0_2__3}
+P0_0__3 [label = "!", shape = ellipse]
+P0_0_0__3 [label = "", fixedsize = false, width = 0, height = 0, shape = none]
+P0_0__3 -> P0_0_0__3 [label = <>, weight = 100]
+P0_0_0__3 -> P0_0_0__4 [label = <>, weight = 100]
+P0_0_0__4 [shape = plaintext, label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD>Beginning of process <FONT COLOR="darkgreen">CP</FONT>(sCP_2678, k_2681, cpssk_2682,<br/>
+pk(clientsk_2683), spk(clientssk_2684), pk(usersk_2677),<br/>
+spk(userssk_2679))</TD></TR></TABLE>>]
+P0_0_0__4 -> P0_0_0__5 [label = <>, weight = 100]
+P0_1__3 [label = "!", shape = ellipse]
+P0_2__3 [label = "!", shape = ellipse]
+P0_2_0__3 [label = "", fixedsize = false, width = 0, height = 0, shape = none]
+P0_2__3 -> P0_2_0__3 [label = <>, weight = 100]
+P0_2_0__3 -> P0_2_0__4 [label = <>, weight = 100]
+P0_2_0__4 [shape = plaintext, label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD>Beginning of process <FONT COLOR="darkgreen">user</FONT>(u1_2675, pk(sCP_2678),<br/>
+usersk_2677, userssk_2679, spk(cpssk_2682), pk(<br/>
+clientsk_2683))</TD></TR><TR><TD><FONT COLOR="darkgreen">{10}</FONT><FONT COLOR="blue">new </FONT>d_2676</TD></TR><TR><TD><FONT COLOR="darkgreen">{11}</FONT><FONT COLOR="blue">event</FONT> datasubmittedtocp(u1_2675,d_2676)</TD></TR></TABLE>>]
+P0_2_0__4 -> P0_2_0__5 [label = <>, weight = 100]
+P0_2_0__5 -> P0_2_0__6 [label = <>, weight = 100]
+P0_1__4 [label = "", style = invisible]
+P0_1__3 -> P0_1__4 [label = <>, weight = 100, style = invisible]
+P0_0_0__5 -> P0_0_0__6 [label = <>, weight = 100]
+{rank = same; P0_0_0__6 P0_1__4 P0_2_0__6}
+P0_2_0__6 -> P0_2_0__7 [label = <>, weight = 100]
+P0_0_0__6 -> P0_0_0__7 [label = <>, weight = 100]
+{rank = same; P0_0_0__7 P0_2_0__7}
+P0_2_0__7 -> P0_0_0__7 [label = <aenc((u1_2675,d_2676,sign((u1_2675,d_2676,pk(usersk_2677),<br/>
+pk(sCP_2678)),userssk_2679)),pk(sCP_2678))>, arrowhead = normal]
+P0_2_0__7 -> P0_2_0__8 [label = <>, weight = 100]
+P0_1__5 [label = "", style = invisible]
+P0_1__4 -> P0_1__5 [label = <>, weight = 100, style = invisible]
+P0_0_0__7 -> P0_0_0__8 [label = <>, weight = 100]
+{rank = same; P0_0_0__8 P0_1__5 P0_2_0__8}
+P0_0_0__8 -> P0_0_0__9 [label = <>, weight = 100]
+P0_0_0__9 [shape = plaintext, label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD><FONT COLOR="darkgreen">{40}</FONT><FONT COLOR="blue">new </FONT>id1_2680</TD></TR></TABLE>>]
+P0_0_0__9 -> P0_0_0__10 [label = <>, weight = 100]
+P0_0_0__10 -> P0_0_0__11 [label = <>, weight = 100]
+P0_0_0__11 [color = red, shape = plaintext, label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD><FONT COLOR="darkgreen">{41}</FONT><FONT COLOR="blue">event</FONT> cpGeneratedId(u1_2675,d_2676,id1_2680)<br/>
+</TD></TR></TABLE>>]
+P0_0_0__11 -> P0_0_0__12 [label = <>, weight = 100]
+}
